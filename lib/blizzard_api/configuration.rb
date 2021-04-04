@@ -58,6 +58,7 @@ module BlizzardApi
     #   Access token. Optional. If you don't provide one it will be generate using your client credentials.
     #   @return [String] Access token.
     attr_accessor :access_token
+    attr_accessor :access_token_expires_at
 
     ##
     # @!attribute icons_directory

@@ -65,7 +65,7 @@ module BlizzardApi
       self.region = region || BlizzardApi.region
       @redis = Redis.new(host: BlizzardApi.redis_host, port: BlizzardApi.redis_port) if BlizzardApi.use_cache
       # Use the shared access_token, or create one if it doesn't exists. This avoids unnecessary calls to create tokens.
-      @access_token = BlizzardApi.access_token || create_access_token
+      @access_token = get_access_token
       # Mode
       @mode = mode
     end
@@ -100,7 +100,18 @@ module BlizzardApi
       end
     end
 
+    def get_access_token
+      if BlizzardApi.access_token_expires_at >= Time.now + 1.minute
+        create_access_token
+      else
+        puts "Using cached access_token..."
+        BlizzardApi.access_token
+      end
+    end
+
     def create_access_token
+      puts "Token was inexistent or expiring soon; refreshing"
+
       uri = URI.parse("https://#{BlizzardApi.region}.battle.net/oauth/token")
 
       http = Net::HTTP.new(uri.host, uri.port)
@@ -112,7 +123,9 @@ module BlizzardApi
       request.set_form_data grant_type: 'client_credentials'
 
       response = http.request(request)
+    
       BlizzardApi.access_token = JSON.parse(response.body)['access_token']
+      BlizzardApi.access_token_expires_at = Time.now + 1.hour
     end
 
     def request(url, **options)
@@ -174,7 +187,7 @@ module BlizzardApi
       # Executes the request
       http.request(request).tap do |response|
         if mode.eql?(:regular) && ![200, 304].include?(response.code.to_i)
-          raise BlizzardApi::ApiException.new "Request failed (Blizzard responded with status: #{response.code}", response.code.to_i
+          raise BlizzardApi::ApiException.new "Request failed (Blizzard responded with status: #{response.code})", response.code.to_i
         end
       end
     end
