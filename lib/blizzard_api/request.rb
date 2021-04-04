@@ -124,6 +124,8 @@ module BlizzardApi
       request.set_form_data grant_type: 'client_credentials'
 
       response = http.request(request)
+
+      puts "response.body: #{response.body}"
     
       BlizzardApi.access_token = JSON.parse(response.body)['access_token']
       BlizzardApi.access_token_expires_at = Time.now + 1.hour
