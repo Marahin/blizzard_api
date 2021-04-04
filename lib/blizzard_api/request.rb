@@ -101,7 +101,7 @@ module BlizzardApi
     end
 
     def get_access_token
-      if (BlizzardApi.access_token_expires_at || Time.now) >= Time.now + 1.minute
+      if (BlizzardApi.access_token_expires_at || Time.now) <= Time.now + 1.minute
         create_access_token
       else
         puts "Using cached access_token..."
