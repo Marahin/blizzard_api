@@ -129,6 +129,8 @@ module BlizzardApi
     
       BlizzardApi.access_token = JSON.parse(response.body)['access_token']
       BlizzardApi.access_token_expires_at = Time.now + 1.hour
+
+      BlizzardApi.access_token
     end
 
     def request(url, **options)
