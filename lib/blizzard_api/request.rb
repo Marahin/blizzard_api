@@ -101,13 +101,16 @@ module BlizzardApi
     end
 
     def get_access_token
-      create_access_token
-      # if (BlizzardApi.access_token_expires_at || Time.now) <= Time.now + 1.minute
-      #   create_access_token
-      # else
-      #   puts "Using cached access_token..."
-      #   BlizzardApi.access_token
-      # end
+      unless BlizzardApi.access_token
+        return create_access_token
+      end
+
+      if BlizzardApi.access_token_expires_at <= Time.now + 1.minute
+        return create_access_token
+      end
+
+      puts "Token exists and has not expired yet, using it (#{Time.now} vs #{BlizzardApi.access_token_expires_at})"
+      BlizzardApi.access_token
     end
 
     def create_access_token
@@ -124,8 +127,6 @@ module BlizzardApi
       request.set_form_data grant_type: 'client_credentials'
 
       response = http.request(request)
-
-      puts "response.body: #{response.body}"
     
       BlizzardApi.access_token = JSON.parse(response.body)['access_token']
       BlizzardApi.access_token_expires_at = Time.now + 1.hour
@@ -191,8 +192,8 @@ module BlizzardApi
 
       # Executes the request
       http.request(request).tap do |response|
-        puts "Request made; url: #{url}, options: #{options.inspect}, reponse.body: #{response.body}, code: #{response.code}"
         if mode.eql?(:regular) && ![200, 304].include?(response.code.to_i)
+        puts "Request made; url: #{url}, options: #{options.inspect}, code: #{response.code}"
           raise BlizzardApi::ApiException.new "Request failed (Blizzard responded with status: #{response.code})", response.code.to_i
         end
       end
