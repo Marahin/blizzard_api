@@ -189,7 +189,7 @@ module BlizzardApi
 
       # Executes the request
       http.request(request).tap do |response|
-        puts "Request made; reponse.body: #{response.body}, code: #{response.code}"
+        puts "Request made; url: #{url}, options: #{options.inspect}, reponse.body: #{response.body}, code: #{response.code}"
         if mode.eql?(:regular) && ![200, 304].include?(response.code.to_i)
           raise BlizzardApi::ApiException.new "Request failed (Blizzard responded with status: #{response.code})", response.code.to_i
         end
